@@ -27,15 +27,15 @@ pub fn test() {
         Some(x) => println!("v1[2]: {}", x),
         None => println!("v1[2] is None"),
     }
+}
 
+fn _test02() {
     let mut v: Vec<i32> = vec![100, 32, 57];
-
     {
         let a1 = v.get(1);
         println!("a1: {:?}", a1);
     }
     v.push(121);
-
     for i in &mut v {
         *i += 50; // 这里的 *i 是可变引用,修改值
     }
