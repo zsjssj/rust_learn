@@ -6,13 +6,17 @@ pub fn test() {
 //函数签名中的生命周期标注
 fn test001() {
     fn longest<'a>(x: &'a str, y: &'a str) -> &'a str {
-        if x.len() > y.len() { x } else { y }
+        if x.len() > y.len() {
+            x
+        } else {
+            y
+        }
     }
     let string1 = String::from("abcd");
     let result;
     {
         let string2 = "xyz"; //string2是字符串slice 。 xyz是字符串字面量，具有 'static 生命周期，即在整个程序运行期间都有效
-        // let string2 = String::from("xyz"); // `string2` does not live long enough. borrowed value does not live long enough
+                             // let string2 = String::from("xyz"); // `string2` does not live long enough. borrowed value does not live long enough
         result = longest(string1.as_str(), string2);
     }
     println!("The longest string is {}", result);
