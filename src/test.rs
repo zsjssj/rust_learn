@@ -1,24 +1,14 @@
-#[derive(Debug)]
-struct User {
-    active: bool,
-    username: String,
-    email: String,
-    sign_in_count: u64,
-}
+use std::cell::Cell;
 
 pub fn test() {
-    let user1 = User {
-        email: String::from("someone@example.com"),
-        username: String::from("someusername123"),
-        active: true,
-        sign_in_count: 1,
-    };
-    let user2 = User {
-        email: String::from("another@example.com"),
-        ..user1
-    };
-    println!("{}", user1.active);
-    println!("{:?}", user2);
-    // 下面这行会报错
-    // println!("{:?}", user1);
+    let c = Cell::new("asdf");
+    let one = c.get();
+    c.set("qwer");
+    let two = c.get();
+    println!("{},{}", one, two);
+
+    // let s = RefCell::new(String::from("hello, world"));
+    // let s1 = s.borrow();
+    // let s2 = s.borrow_mut();
+    // println!("{},{}", s1, s2);
 }

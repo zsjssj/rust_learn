@@ -1,17 +1,17 @@
 #![allow(unused)]
 
-pub fn test() {
-    let a11 = Coin::Quarter;
-    let a1 = value_in_cents(a11);
-    let a2 = value_in_cents(Coin::Penny);
-    println!("a1: {}, a2: {}", a1, a2);
-}
-
 enum Coin {
     Penny,
     Nickel,
     Dime,
     Quarter,
+}
+
+pub fn test() {
+    let a11 = Coin::Quarter;
+    let a1 = value_in_cents(a11);
+    let a2 = value_in_cents(Coin::Penny);
+    println!("a1: {}, a2: {}", a1, a2);
 }
 
 fn value_in_cents(coin: Coin) -> u8 {
