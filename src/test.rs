@@ -1,14 +1,12 @@
 #![allow(unused)]
-use std::env;
-use std::fs;
 
-pub fn test() {
-    let args: Vec<String> = env::args().collect();
+pub fn run() {
+    let res: Result<i32, &str> = Ok(10);
+    let s: Result<String, String> = Ok(String::from("hello"));
 
-    let query = &args[1];
-    let file_path = &args[2];
+    assert_eq!(s.clone().is_ok_and(|x| x.len() >= 5), true); // Ok 里面的值满足 >= 5
+    println!("res: {:?}", s);
 
-    println!("In file {file_path}");
-    let contents = fs::read_to_string(file_path).expect("Should have been able to read the file");
-    println!("With text:\n{contents}");
+    // Ok，并且里面的值满足 > 5
+    assert_eq!(res.is_ok_and(|x| x > 5), true);
 }

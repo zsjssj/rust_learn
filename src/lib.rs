@@ -7,8 +7,8 @@ pub mod test;
 
 pub fn try_some() {
     println!("lib run start: ^_^\n");
-    // learn_11_15::learn_thread::try_thread_lock();
-    test::test();
     // crate::api::api_test();
     // crate::my_qrcode::set_qr_code();
+    learn_11_15::learn_13_operater::learn_13_01::run();
+    // test::run();
 }
