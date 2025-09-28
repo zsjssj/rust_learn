@@ -98,11 +98,7 @@ pub fn run() {
 
 fn test1(config: Config) -> Result<(), Box<dyn std::error::Error>> {
     let contents: String = std::fs::read_to_string(config.file_path)?;
-    let results: Vec<&str> = if config.ignore_case {
-        search_case_insensitive(&config.query, &contents)
-    } else {
-        search(&config.query, &contents)
-    };
+    let results: Vec<&str> = if config.ignore_case { search_case_insensitive(&config.query, &contents) } else { search(&config.query, &contents) };
     for line in results {
         println!("{line}");
     }

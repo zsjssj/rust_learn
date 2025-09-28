@@ -1,12 +1,12 @@
 #![allow(unused)]
+// use std::collections::HashMap;
 
 pub fn run() {
-    let res: Result<i32, &str> = Ok(10);
-    let s: Result<String, String> = Ok(String::from("hello"));
+    let v1 = vec![1, 2, 3];
+    let mut v1_iter = v1.iter();
 
-    assert_eq!(s.clone().is_ok_and(|x| x.len() >= 5), true); // Ok 里面的值满足 >= 5
-    println!("res: {:?}", s);
-
-    // Ok，并且里面的值满足 > 5
-    assert_eq!(res.is_ok_and(|x| x > 5), true);
+    assert_eq!(v1_iter.next(), Some(&1));
+    assert_eq!(v1_iter.next(), Some(&2));
+    assert_eq!(v1_iter.next(), Some(&3));
+    assert_eq!(v1_iter.next(), None);
 }

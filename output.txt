@@ -1,20 +1,3 @@
 lib run start: ^_^
 
-Are you nobody, too?
-How dreary to be somebody!
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+shoes in my size: [Shoe { size: 10, style: "sneaker" }, Shoe { size: 10, style: "boot" }]

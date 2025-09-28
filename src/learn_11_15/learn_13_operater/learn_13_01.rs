@@ -2,6 +2,7 @@
   闭包介绍：能捕获其环境变量的匿名函数
   学习参考：https://kaisery.github.io/trpl-zh-cn/ch13-01-closures.html
 */
+#![allow(dead_code)]
 
 #[derive(Debug, PartialEq, Copy, Clone)]
 enum ShirtColor {
