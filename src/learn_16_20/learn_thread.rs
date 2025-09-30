@@ -4,7 +4,7 @@ use std::sync::{Arc, Mutex};
 use std::thread::{self, JoinHandle};
 
 pub fn try_thread_lock() {
-    let v = Arc::new(Mutex::new(vec![]));
+    let v: Arc<Mutex<Vec<i32>>> = Arc::new(Mutex::new(vec![]));
     let mut handles: Vec<JoinHandle<()>> = vec![];
     for i in 0..5 {
         let v: Arc<Mutex<Vec<i32>>> = Arc::clone(&v);
