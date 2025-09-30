@@ -10,6 +10,6 @@ pub fn try_some() {
     println!("lib run start: ^_^\n");
     // crate::api::api_test();
     // crate::my_qrcode::set_qr_code();
-    learn_11_15::learn_13_operater::learn_13_03::run();
+    learn_11_15::learn_15_smart_pointer::learn_15_02::run();
     // test::run();
 }
