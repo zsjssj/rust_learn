@@ -1,5 +1,5 @@
+//!   使用消息传递在线程间传送数据
 /*
-  使用消息传递在线程间传送数据
   参考：https://kaisery.github.io/trpl-zh-cn/ch16-02-message-passing.html
 */
 #![allow(dead_code)]
@@ -9,12 +9,13 @@ use std::thread;
 use std::time::Duration;
 
 pub fn run() {
+    // test1();
+    // test2();
     test3();
 }
 
 fn test1() {
     let (tx, rx) = mpsc::channel();
-
     thread::spawn(move || {
         let val = String::from("hi");
         tx.send(val).unwrap(); //会拥有 val 的所有权，并将其发送到另一个线程
@@ -31,45 +32,39 @@ fn test1() {
     println!("Got: {received}");
 }
 
-//发送多个值并观察接收端的等待
+///发送多个值并观察接收端的等待
 fn test2() {
     let (tx, rx) = mpsc::channel();
-
     thread::spawn(move || {
         let vals = vec![String::from("hi"), String::from("from"), String::from("the"), String::from("thread")];
-
-        for val in vals {
+        for val in vals.into_iter() {
             tx.send(val).unwrap();
             thread::sleep(Duration::from_secs(1));
         }
     });
-
     for received in rx {
         println!("Got: {received}");
     }
 }
 
-//通过克隆发送端来创建多个生产者
+///通过克隆发送端来创建多个生产者
 fn test3() {
     let (tx, rx) = mpsc::channel();
-
     let tx1 = tx.clone();
     thread::spawn(move || {
         let vals = vec![String::from("hi"), String::from("from"), String::from("the"), String::from("thread")];
-        for val in vals {
-            tx1.send(val).unwrap();
+        for v in vals.into_iter() {
+            tx1.send(v).unwrap();
             thread::sleep(Duration::from_secs(1));
         }
     });
-
     thread::spawn(move || {
         let vals = vec![String::from("more"), String::from("messages"), String::from("for"), String::from("you")];
-        for val in vals {
+        for val in vals.into_iter() {
             tx.send(val).unwrap();
             thread::sleep(Duration::from_secs(1));
         }
     });
-
     for received in rx {
         println!("Got: {received}");
     }
