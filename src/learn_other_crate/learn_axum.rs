@@ -178,6 +178,7 @@ use axum::{
 use tokio::task_local;
 async fn test44() {
     let app: Router = Router::new().route("/", get(handler4)).route_layer(middleware::from_fn(auth));
+    let app = Router::new().nest("/api/v1", app); //nest 嵌套路由（推荐用于 API 子路由）
     let listener: tokio::net::TcpListener = tokio::net::TcpListener::bind("127.0.0.1:3000").await.unwrap();
     axum::serve(listener, app).await.unwrap();
 }
@@ -194,6 +195,7 @@ async fn auth(req: Request, next: Next) -> Result<Response, StatusCode> {
     if let Some(current_user) = authorize_current_user(auth_header).await {
         println!("✅ 用户 {} 已通过认证", current_user.name);
         // State is setup here in the middleware
+        println!("Authenticated user: {}", current_user.name);
         Ok(USER.scope(current_user, next.run(req)).await)
     } else {
         Err(StatusCode::UNAUTHORIZED)
