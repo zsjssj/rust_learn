@@ -192,6 +192,7 @@ task_local! {
 async fn auth(req: Request, next: Next) -> Result<Response, StatusCode> {
     let auth_header = req.headers().get(header::AUTHORIZATION).and_then(|header| header.to_str().ok()).ok_or(StatusCode::UNAUTHORIZED)?;
     if let Some(current_user) = authorize_current_user(auth_header).await {
+        println!("✅ 用户 {} 已通过认证", current_user.name);
         // State is setup here in the middleware
         Ok(USER.scope(current_user, next.run(req)).await)
     } else {
