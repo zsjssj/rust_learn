@@ -10,7 +10,11 @@ use tokio;
 pub async fn run() {
     // test1().await;
     // test2().await;
-    test3().await;
+    // test3().await;
+    // test4().await;
+    // test42().await;
+    // test43().await;
+    test44().await;
 }
 
 async fn test1() {
@@ -74,7 +78,7 @@ struct User {
 }
 // 1️⃣ Path 提取器：从路径中取参数
 async fn hello_handler(Path(name): Path<String>) -> String {
-    format!("Hello, {name}! {}")
+    format!("Hello, {name}!")
 }
 // 2️⃣ Query 提取器：从 ?q=xxx 获取查询参数
 async fn query_handler(Query(params): Query<Params>) -> String {
@@ -111,4 +115,101 @@ async fn test4() {
 }
 async fn handler(State(state): State<Arc<AppState>>) -> String {
     format!("State message: {}", state.message)
+}
+
+use axum::extract::Extension;
+async fn test42() {
+    let app_state = AppState {
+        message: String::from("Hello from Extension!"),
+    }; // 应用状态，可以通过 State 提取器访问
+    let app: Router = Router::new().route("/state", get(handler2)).layer(Extension(Arc::new(app_state)));
+    let listener: tokio::net::TcpListener = tokio::net::TcpListener::bind("127.0.0.1:3000").await.unwrap();
+    axum::serve(listener, app).await.unwrap();
+}
+async fn handler2(Extension(state): Extension<Arc<AppState>>) -> String {
+    format!("State message: {}", state.message)
+}
+
+//Using closure captures
+use axum::routing::post;
+async fn test43() {
+    let shared_state = Arc::new(AppState {
+        message: "Hello from closure captures!".to_string(),
+    });
+    let app: Router = Router::new()
+        .route(
+            "/users",
+            post({
+                let shared_state: Arc<AppState> = shared_state.clone();
+                move |body| create_user(body, shared_state)
+            }),
+        )
+        .route(
+            "/users/{id}",
+            get({
+                let shared_state: Arc<AppState> = Arc::clone(&shared_state);
+                move |path| get_user(path, shared_state)
+            }),
+        );
+    let listener: tokio::net::TcpListener = tokio::net::TcpListener::bind("127.0.0.1:3000").await.unwrap();
+    axum::serve(listener, app).await.unwrap();
+}
+async fn get_user(Path(user_id): Path<String>, state: Arc<AppState>) -> String {
+    format!("User message: {}", state.message)
+}
+async fn create_user(Json(payload): Json<CreateUserPayload>, state: Arc<AppState>) -> String {
+    format!("Created user: {} (age {}) with message: {}", payload.name, payload.age, state.message)
+}
+#[derive(Deserialize)]
+struct CreateUserPayload {
+    name: String,
+    age: u8,
+}
+
+//Using task-local variables
+use axum::{
+    // Router,
+    extract::Request,
+    http::{StatusCode, header},
+    middleware::{self, Next},
+    response::{IntoResponse, Response},
+    // routing::get,
+};
+use tokio::task_local;
+async fn test44() {
+    let app: Router = Router::new().route("/", get(handler4)).route_layer(middleware::from_fn(auth));
+    let listener: tokio::net::TcpListener = tokio::net::TcpListener::bind("127.0.0.1:3000").await.unwrap();
+    axum::serve(listener, app).await.unwrap();
+}
+
+#[derive(Clone)]
+struct CurrentUser {
+    name: String,
+}
+task_local! {
+    pub static USER: CurrentUser;
+}
+async fn auth(req: Request, next: Next) -> Result<Response, StatusCode> {
+    let auth_header = req.headers().get(header::AUTHORIZATION).and_then(|header| header.to_str().ok()).ok_or(StatusCode::UNAUTHORIZED)?;
+    if let Some(current_user) = authorize_current_user(auth_header).await {
+        // State is setup here in the middleware
+        Ok(USER.scope(current_user, next.run(req)).await)
+    } else {
+        Err(StatusCode::UNAUTHORIZED)
+    }
+}
+async fn authorize_current_user(auth_token: &str) -> Option<CurrentUser> {
+    Some(CurrentUser { name: auth_token.to_string() })
+}
+
+struct UserResponse;
+impl IntoResponse for UserResponse {
+    fn into_response(self) -> Response {
+        // State is accessed here in the IntoResponse implementation
+        let current_user = USER.with(|u| u.clone());
+        (StatusCode::OK, current_user.name).into_response()
+    }
+}
+async fn handler4() -> UserResponse {
+    UserResponse
 }
