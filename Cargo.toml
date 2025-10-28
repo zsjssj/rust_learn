@@ -18,6 +18,7 @@ trpl = "0.3.0"
 hello_macro = { path = "./hello_macro/" }
 hello_macro_derive = { path = "./hello_macro_derive/" }
 axum = "0.8.6"
+anyhow = "1.0.100"
 
 [profile.dev]
 opt-level = 0  # 优化等级，0-3，s，z

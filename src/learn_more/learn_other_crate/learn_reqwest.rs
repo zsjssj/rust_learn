@@ -36,3 +36,25 @@ async fn test() -> Result<ApiResponse, reqwest::Error> {
         data: Some(response),
     })
 }
+
+// src-tauri/src/http.rs
+use anyhow::Result;
+use reqwest::Client;
+use serde::de::DeserializeOwned;
+pub struct HttpService {
+    pub client: Client,
+    pub base_url: String,
+}
+impl HttpService {
+    pub fn new(base_url: impl Into<String>) -> Self {
+        Self {
+            client: Client::new(),
+            base_url: base_url.into(),
+        }
+    }
+    pub async fn get_json<T: DeserializeOwned>(&self, path: &str) -> Result<T> {
+        let url = format!("{}/{}", self.base_url, path);
+        let res = self.client.get(url).send().await?;
+        Ok(res.json::<T>().await?)
+    }
+}

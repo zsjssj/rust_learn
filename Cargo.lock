@@ -1890,6 +1890,7 @@ dependencies = [
 name = "rust_learn"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "axum",
  "hello_macro",
  "hello_macro_derive",
