@@ -1,23 +1,51 @@
 #![allow(unused)]
-use anyhow::{Context, Result};
-use std::fs;
-
-fn read_config() -> Result<String> {
-    // 任何 io::Error 会被 ? 自动转换为 anyhow::Error
-    let s = fs::read_to_string("config.toml").context("读取配置文件失败：config.toml")?;
-    Ok(s)
-}
-
-pub fn test1() -> Result<()> {
-    let config = read_config()?;
-    println!("配置内容：\n{}", config);
-    Ok(())
-}
 
 pub fn run() {
-    // test1().unwrap();
-    match test1() {
-        Ok(_) => println!("配置文件读取成功"),
-        Err(e) => println!("发生错误：{}", e),
+    // test1();
+    // test2();
+    let s = String::from("hello");
+    let char = s.chars().nth(1).unwrap();
+    println!("{}", char);
+}
+
+fn test1() {
+    use std::sync::{Arc, Mutex};
+    use std::thread;
+    let data = Arc::new(Mutex::new(0));
+    let threads: Vec<_> = (0..5)
+        .map(|_| {
+            let data = data.clone();
+            thread::spawn(move || {
+                let mut num = data.lock().unwrap(); // 阻塞线程直到获得锁
+                *num += 1;
+            })
+        })
+        .collect();
+    for t in threads {
+        t.join().unwrap();
     }
+    println!("Result: {}", *data.lock().unwrap());
+}
+
+#[tokio::main]
+async fn test2() {
+    use std::sync::Arc;
+    use tokio::sync::Mutex;
+    use tokio::task;
+
+    let data = Arc::new(Mutex::new(0));
+    let mut handles = vec![];
+    for _ in 0..5 {
+        let data = data.clone();
+        let handle = task::spawn(async move {
+            let mut num = data.lock().await; // 挂起任务，不阻塞线程
+            *num += 1;
+        });
+        handles.push(handle);
+    }
+    for handle in handles.into_iter() {
+        handle.await.unwrap();
+    }
+
+    println!("Result: {}", *data.lock().await);
 }
