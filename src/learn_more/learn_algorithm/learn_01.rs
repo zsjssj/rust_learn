@@ -1,3 +1,7 @@
+#![allow(dead_code)]
+#![allow(unused_imports)]
+#![allow(unused_variables)]
+
 //简单算法题
 use super::Solution;
 use std::collections::HashMap;
@@ -95,5 +99,81 @@ impl Solution {
             }
         }
         stack.is_empty()
+    }
+    //21.合并两个有序链表【递归】
+    pub fn merge_two_lists(l1: Option<Box<ListNode>>, l2: Option<Box<ListNode>>) -> Option<Box<ListNode>> {
+        match (l1, l2) {
+            (Some(mut node1), Some(mut node2)) => {
+                if node1.val < node2.val {
+                    let next = node1.next.take();
+                    node1.next = Self::merge_two_lists(next, Some(node2));
+                    Some(node1)
+                } else {
+                    let next = node2.next.take();
+                    node2.next = Self::merge_two_lists(Some(node1), next);
+                    Some(node2)
+                }
+            }
+            (Some(node1), None) => Some(node1),
+            (None, Some(node2)) => Some(node2),
+            (None, None) => None,
+        }
+    }
+    //26.删除排序数组中的重复项【双指针】
+    pub fn remove_duplicates(nums: &mut Vec<i32>) -> i32 {
+        if nums.is_empty() {
+            return 0;
+        }
+        let mut slow: usize = 0;
+        for fast in 1..nums.len() {
+            if nums[fast] != nums[slow] {
+                slow += 1;
+                nums[slow] = nums[fast];
+            }
+        }
+        (slow + 1) as i32
+    }
+    //27.移除元素【双指针】
+    pub fn remove_element(nums: &mut Vec<i32>, val: i32) -> i32 {
+        let mut slow: usize = 0;
+        for fast in 0..nums.len() {
+            if nums[fast] != val {
+                nums[slow] = nums[fast];
+                slow += 1;
+            }
+        }
+        slow as i32
+    }
+    //28.找出字符串中的第一个匹配项的下标【双指针】
+    pub fn str_str(haystack: String, needle: String) -> i32 {
+        if needle.is_empty() {
+            return 0;
+        }
+        let haystack_bytes: Vec<u8> = haystack.as_bytes().to_vec();
+        let needle_bytes: Vec<u8> = needle.as_bytes().to_vec();
+        let haystack_len: usize = haystack_bytes.len();
+        let needle_len: usize = needle_bytes.len();
+        for i in 0..=(haystack_len - needle_len) {
+            let mut j: usize = 0;
+            while j < needle_len && haystack_bytes[i + j] == needle_bytes[j] {
+                j += 1;
+            }
+            if j == needle_len {
+                return i as i32;
+            }
+        }
+        -1
+    }
+}
+
+#[derive(PartialEq, Eq, Clone, Debug)]
+pub struct ListNode {
+    pub val: i32,
+    pub next: Option<Box<ListNode>>,
+}
+impl ListNode {
+    #[inline]
+    fn new(val: i32) -> Self {
+        ListNode { next: None, val }
     }
 }
