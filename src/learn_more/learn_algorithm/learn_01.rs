@@ -4,7 +4,9 @@
 
 //简单算法题
 use super::Solution;
+use std::cell::RefCell;
 use std::collections::HashMap;
+use std::rc::Rc;
 
 impl Solution {
     //1.两数之和 【空间换时间，哈希表】
@@ -153,6 +155,9 @@ impl Solution {
         let needle_bytes: Vec<u8> = needle.as_bytes().to_vec();
         let haystack_len: usize = haystack_bytes.len();
         let needle_len: usize = needle_bytes.len();
+        if needle_len > haystack_len {
+            return -1;
+        }
         for i in 0..=(haystack_len - needle_len) {
             let mut j: usize = 0;
             while j < needle_len && haystack_bytes[i + j] == needle_bytes[j] {
@@ -163,6 +168,159 @@ impl Solution {
             }
         }
         -1
+    }
+    //35.搜索插入位置【二分查找】
+    pub fn search_insert(nums: Vec<i32>, target: i32) -> i32 {
+        let mut left: usize = 0;
+        let mut right: usize = nums.len();
+        while left < right {
+            let mid: usize = left + (right - left) / 2;
+            if nums[mid] == target {
+                return mid as i32;
+            } else if nums[mid] < target {
+                left = mid + 1;
+            } else {
+                right = mid;
+            }
+        }
+        left as i32
+    }
+    //58.最后一个单词的长度【字符串处理】
+    pub fn length_of_last_word(s: String) -> i32 {
+        let trimmed: &str = s.trim_end();
+        if let Some(pos) = trimmed.rfind(' ') {
+            (trimmed.len() - pos - 1) as i32
+        } else {
+            trimmed.len() as i32
+        }
+    }
+    //66.加一【模拟加法器】
+    /*
+       给定一个表示 大整数 的整数数组 digits，其中 digits[i] 是整数的第 i 位数字。这些数字按从左到右，从最高位到最低位排列。这个大整数不包含任何前导 0。
+       将大整数加 1，并返回结果的数字数组。
+    */
+    pub fn plus_one(digits: Vec<i32>) -> Vec<i32> {
+        let mut result: Vec<i32> = digits.clone();
+        let n: usize = result.len();
+        for i in (0..n).rev() {
+            if result[i] < 9 {
+                result[i] += 1;
+                return result;
+            }
+            result[i] = 0;
+        }
+        let mut new_result: Vec<i32> = Vec::with_capacity(n + 1);
+        new_result.push(1);
+        new_result.extend(result);
+        new_result
+    }
+    //67.二进制求和【模拟二进制加法器】
+    pub fn add_binary(a: String, b: String) -> String {
+        let mut result: String = String::new(); // 存储结果
+        let mut carry: i32 = 0; // 进位
+        let a_bytes: Vec<u8> = a.as_bytes().to_vec(); // 将字符串转换为字节数组
+        let b_bytes: Vec<u8> = b.as_bytes().to_vec();
+        let mut i: isize = (a_bytes.len() as isize) - 1; // 从最后一位开始遍历
+        let mut j: isize = (b_bytes.len() as isize) - 1;
+        while i >= 0 || j >= 0 || carry > 0 {
+            let mut sum: i32 = carry; // 当前位的和，初始值为进位
+            if i >= 0 {
+                sum += (a_bytes[i as usize] - b'0') as i32; // 转换为数字并加到 sum 上
+                i -= 1;
+            }
+            if j >= 0 {
+                sum += (b_bytes[j as usize] - b'0') as i32;
+                j -= 1;
+            }
+            result.push(((sum % 2) as u8 + b'0') as char);
+            carry = sum / 2;
+        }
+        result.chars().rev().collect()
+    }
+    //69.x 的平方根【二分查找】
+    pub fn my_sqrt(x: i32) -> i32 {
+        if x < 2 {
+            return x;
+        }
+        let mut left: i32 = 1;
+        let mut right: i32 = x / 2;
+        while left <= right {
+            let mid: i32 = left + (right - left) / 2;
+            let mid_squared: i64 = (mid as i64) * (mid as i64);
+            if mid_squared == x as i64 {
+                return mid;
+            } else if mid_squared < x as i64 {
+                left = mid + 1;
+            } else {
+                right = mid - 1;
+            }
+        }
+        right
+    }
+    //70.爬楼梯【动态规划】
+    pub fn climb_stairs(n: i32) -> i32 {
+        if n <= 2 {
+            return n;
+        }
+        let mut dp: Vec<i32> = vec![0; (n + 1) as usize];
+        dp[1] = 1;
+        dp[2] = 2;
+        for i in 3..=n as usize {
+            dp[i] = dp[i - 1] + dp[i - 2];
+        }
+        dp[n as usize]
+    }
+    //83.删除排序链表中的重复元素【迭代】优化版【更快（原地修改）】
+    pub fn delete_duplicates(mut head: Option<Box<ListNode>>) -> Option<Box<ListNode>> {
+        if head.is_none() {
+            return None;
+        }
+        let mut curr = head.as_mut();
+        while let Some(node_curr) = curr {
+            while node_curr.next.is_some() && node_curr.next.as_ref().unwrap().val == node_curr.val {
+                node_curr.next = node_curr.next.as_mut().unwrap().next.take();
+            }
+            curr = node_curr.next.as_mut();
+        }
+        head
+    }
+    //88.合并两个有序数组【双指针从后向前】
+    pub fn merge(nums1: &mut Vec<i32>, m: i32, nums2: &Vec<i32>, n: i32) {
+        let mut p1: isize = (m - 1) as isize;
+        let mut p2: isize = (n - 1) as isize;
+        let mut p: isize = (m + n - 1) as isize;
+        while p1 >= 0 && p2 >= 0 {
+            if nums1[p1 as usize] > nums2[p2 as usize] {
+                nums1[p as usize] = nums1[p1 as usize];
+                p1 -= 1;
+            } else {
+                nums1[p as usize] = nums2[p2 as usize];
+                p2 -= 1;
+            }
+            p -= 1;
+        }
+        while p2 >= 0 {
+            nums1[p as usize] = nums2[p2 as usize];
+            p2 -= 1;
+            p -= 1;
+        }
+    }
+    //94.二叉树的中序遍历【迭代】
+    pub fn inorder_traversal(root: Option<Rc<RefCell<TreeNode>>>) -> Vec<i32> {
+        let mut result: Vec<i32> = Vec::new();
+        let mut stack: Vec<Rc<RefCell<TreeNode>>> = Vec::new();
+        let mut current: Option<Rc<RefCell<TreeNode>>> = root;
+        while current.is_some() || !stack.is_empty() {
+            while let Some(node) = current {
+                stack.push(Rc::clone(&node));
+                current = node.borrow().left.clone();
+            }
+            if let Some(node) = stack.pop() {
+                result.push(node.borrow().val);
+                current = node.borrow().right.clone();
+            }
+        }
+        result
     }
 }
 
@@ -175,5 +333,18 @@ impl ListNode {
     #[inline]
     fn new(val: i32) -> Self {
         ListNode { next: None, val }
+    }
+}
+
+#[derive(Debug, PartialEq, Eq)]
+pub struct TreeNode {
+    pub val: i32,
+    pub left: Option<Rc<RefCell<TreeNode>>>,
+    pub right: Option<Rc<RefCell<TreeNode>>>,
+}
+impl TreeNode {
+    #[inline]
+    pub fn new(val: i32) -> Self {
+        TreeNode { val, left: None, right: None }
     }
 }

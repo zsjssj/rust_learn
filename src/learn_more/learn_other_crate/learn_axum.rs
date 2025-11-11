@@ -108,7 +108,9 @@ async fn json() -> Json<Value> {
 
 //Using the State extractor
 async fn test4() {
-    let app_state = AppState { message: String::from("Hello from state!") }; // 应用状态，可以通过 State 提取器访问
+    let app_state = AppState {
+        message: String::from("Hello from state!"),
+    }; // 应用状态，可以通过 State 提取器访问
     let app: Router = Router::new().route("/state", get(handler)).with_state(Arc::new(app_state));
     let listener: tokio::net::TcpListener = tokio::net::TcpListener::bind("127.0.0.1:3000").await.unwrap();
     axum::serve(listener, app).await.unwrap();
@@ -191,7 +193,11 @@ task_local! {
     pub static USER: CurrentUser;
 }
 async fn auth(req: Request, next: Next) -> Result<Response, StatusCode> {
-    let auth_header = req.headers().get(header::AUTHORIZATION).and_then(|header| header.to_str().ok()).ok_or(StatusCode::UNAUTHORIZED)?;
+    let auth_header = req
+        .headers()
+        .get(header::AUTHORIZATION)
+        .and_then(|header| header.to_str().ok())
+        .ok_or(StatusCode::UNAUTHORIZED)?;
     if let Some(current_user) = authorize_current_user(auth_header).await {
         println!("✅ 用户 {} 已通过认证", current_user.name);
         // State is setup here in the middleware
