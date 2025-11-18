@@ -3,6 +3,7 @@
 pub mod learn_01; //简单算法题
 pub mod learn_02; //中等算法题
 pub mod learn_03; //困难算法题
+pub mod learn_hot100; //leetcode热题100
 
 //算法题目解答结构体
 pub struct Solution;
