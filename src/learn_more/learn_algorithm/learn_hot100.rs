@@ -161,7 +161,9 @@ impl Solution {
         let mut char_index_map = HashMap::new();
         let (mut left, mut max_length) = (0, 0);
         for (right, c) in s.chars().enumerate() {
+            //判断有无重复字符
             if let Some(&prev_index) = char_index_map.get(&c) {
+                //判断重复字符【old】是否在当前窗口内,是就移动左指针【窗口左侧移动到重复字符【old】的下一个位置】
                 if prev_index >= left {
                     left = prev_index + 1;
                 }
@@ -170,5 +172,56 @@ impl Solution {
             max_length = max_length.max(right - left + 1);
         }
         max_length as i32
+    }
+    //  3.2找到字符串中所有字母异位词【中等】
+    /// 给定两个字符串 s 和 p ，找到 s 中所有是 p 的 异位词 的子串，返回这些子串的起始索引。不考虑答案输出的顺序。
+    pub fn find_anagrams(s: String, p: String) -> Vec<i32> {
+        use std::collections::HashMap;
+        let mut result = Vec::new();
+        let (s_len, p_len) = (s.len(), p.len());
+        if s_len < p_len {
+            return result;
+        }
+        let mut p_count = HashMap::new();
+        let mut s_count = HashMap::new();
+        for c in p.chars() {
+            *p_count.entry(c).or_insert(0) += 1;
+        }
+        let s_chars: Vec<char> = s.chars().collect();
+        for i in 0..s_len {
+            *s_count.entry(s_chars[i]).or_insert(0) += 1;
+            if i >= p_len {
+                let left_char = s_chars[i - p_len];
+                if let Some(count) = s_count.get_mut(&left_char) {
+                    *count -= 1;
+                    if *count == 0 {
+                        s_count.remove(&left_char);
+                    }
+                }
+            }
+            if s_count == p_count {
+                result.push((i + 1 - p_len) as i32);
+            }
+        }
+        result
+    }
+
+    // 4.子串
+    // 4.1和为K的子数组【中等】
+    /// 给定一个整数数组和一个整数 k ，你需要找到该数组中和为 k 的连续子数组的个数。
+    pub fn subarray_sum(nums: Vec<i32>, k: i32) -> i32 {
+        use std::collections::HashMap;
+        let mut count = 0;
+        let mut sum = 0;
+        let mut prefix_sums = HashMap::new();
+        prefix_sums.insert(0, 1); // 前缀和为0的情况
+        for &num in &nums {
+            sum += num;
+            if let Some(&occurrences) = prefix_sums.get(&(sum - k)) {
+                count += occurrences;
+            }
+            *prefix_sums.entry(sum).or_insert(0) += 1;
+        }
+        count
     }
 }
