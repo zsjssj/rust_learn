@@ -23,7 +23,7 @@ log = "0.4.28"
 env_logger = "0.11.8"
 rust-ini = "0.21.3"
 sqlx = {version = "0.8.6",features = ["postgres", "runtime-tokio", "macros"] }
-
+tower-http = {version = "0.6.7",features = ["fs"] }
 [profile.dev]
 opt-level = 0  # 优化等级，0-3，s，z
 [profile.release]
