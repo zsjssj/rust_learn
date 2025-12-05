@@ -25,7 +25,6 @@ pub async fn run() {
     struct DetailParams {
         name: String,
     }
-
     let product_routes: Router = Router::new()
         .route("/list", get(|| async { "Product List" }))
         .route(
@@ -59,11 +58,19 @@ pub async fn run() {
     struct AppState {
         state: bool,
     }
-    let app_state = AppState { state: true };
+    let app_state: AppState = AppState { state: true };
     let app_routes: Router = Router::new()
         .route(
             "/",
             get(|State(state): State<Arc<AppState>>| async move { format!("app state: {}", state.state) }),
+        )
+        .route(
+            "/{status}",
+            put(
+                |Path(status): Path<bool>, State(state): State<Arc<AppState>>| async move {
+                    format!("app state: {} by {}", state.state, status)
+                },
+            ),
         )
         .with_state(Arc::new(app_state));
 
