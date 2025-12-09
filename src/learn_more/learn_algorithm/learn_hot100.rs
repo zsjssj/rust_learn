@@ -158,14 +158,14 @@ impl Solution {
     /// 给定一个字符串 s ，请你找出其中不含有重复字符的 最长子串 的长度。
     pub fn length_of_longest_substring(s: String) -> i32 {
         use std::collections::HashMap;
-        let mut char_index_map = HashMap::new();
-        let (mut left, mut max_length) = (0, 0);
+        let mut char_index_map = HashMap::new(); // 存储字符及其最新索引
+        let (mut left, mut max_length) = (0, 0); // 左指针和最大长度
         for (right, c) in s.chars().enumerate() {
             //判断有无重复字符
             if let Some(&prev_index) = char_index_map.get(&c) {
                 //判断重复字符【old】是否在当前窗口内,是就移动左指针【窗口左侧移动到重复字符【old】的下一个位置】
                 if prev_index >= left {
-                    left = prev_index + 1;
+                    left = prev_index + 1; //移动左指针
                 }
             }
             char_index_map.insert(c, right);
@@ -175,7 +175,33 @@ impl Solution {
     }
     //  3.2找到字符串中所有字母异位词【中等】
     /// 给定两个字符串 s 和 p ，找到 s 中所有是 p 的 异位词 的子串，返回这些子串的起始索引。不考虑答案输出的顺序。
+    /// 最快速解法：滑动窗口 + 计数数组
     pub fn find_anagrams(s: String, p: String) -> Vec<i32> {
+        let s_bytes = s.as_bytes();
+        let p_bytes = p.as_bytes();
+        let p_len = p_bytes.len();
+        let s_len = s_bytes.len();
+        if s_len < p_len {
+            return vec![];
+        }
+        let mut p_count = [0; 26];
+        let mut s_count = [0; 26];
+        for &b in p_bytes {
+            p_count[(b - b'a') as usize] += 1;
+        }
+        let mut result = Vec::new();
+        for i in 0..s_len {
+            s_count[(s_bytes[i] - b'a') as usize] += 1;
+            if i >= p_len {
+                s_count[(s_bytes[i - p_len] - b'a') as usize] -= 1;
+            }
+            if s_count == p_count {
+                result.push((i + 1 - p_len) as i32);
+            }
+        }
+        result
+    }
+    fn find_anagrams2(s: String, p: String) -> Vec<i32> {
         use std::collections::HashMap;
         let mut result = Vec::new();
         let (s_len, p_len) = (s.len(), p.len());
@@ -185,7 +211,7 @@ impl Solution {
         let mut p_count = HashMap::new();
         let mut s_count = HashMap::new();
         for c in p.chars() {
-            *p_count.entry(c).or_insert(0) += 1;
+            *p_count.entry(c).or_insert(0) += 1; //统计p中字符出现次数
         }
         let s_chars: Vec<char> = s.chars().collect();
         for i in 0..s_len {
@@ -211,9 +237,9 @@ impl Solution {
     /// 给定一个整数数组和一个整数 k ，你需要找到该数组中和为 k 的连续子数组的个数。
     pub fn subarray_sum(nums: Vec<i32>, k: i32) -> i32 {
         use std::collections::HashMap;
-        let mut count = 0;
-        let mut sum = 0;
-        let mut prefix_sums = HashMap::new();
+        let mut count = 0; // 子数组个数
+        let mut sum = 0; // 当前前缀和
+        let mut prefix_sums = HashMap::new(); // 存储前缀和及其出现次数
         prefix_sums.insert(0, 1); // 前缀和为0的情况
         for &num in &nums {
             sum += num;
@@ -223,5 +249,103 @@ impl Solution {
             *prefix_sums.entry(sum).or_insert(0) += 1;
         }
         count
+    }
+    /// 最快解法:
+    fn subarray_sum2(nums: Vec<i32>, k: i32) -> i32 {
+        use std::collections::HashMap;
+        let mut s = vec![0; nums.len() + 1];
+        for (index, &x) in nums.iter().enumerate() {
+            s[index + 1] = s[index] + x;
+        }
+        let mut cnt = HashMap::with_capacity(s.len());
+        let mut ans = 0;
+        for sj in s {
+            if let Some(&c) = cnt.get(&(sj - k)) {
+                ans += c;
+            }
+            *cnt.entry(sj).or_insert(0) += 1;
+        }
+        ans
+    }
+    // 4.2窗口滑动中的最大值【困难】
+    /// 给你一个整数数组 nums，有一个大小为 k 的滑动窗口从数组的最左侧移动到数组的最右侧。
+    /// 你只可以看到在滑动窗口内的 k 个数字。滑动窗口每次只向右移动一位。
+    /// 返回 滑动窗口中的最大值 。
+    pub fn max_sliding_window(nums: Vec<i32>, k: i32) -> Vec<i32> {
+        use std::collections::VecDeque;
+        let n = nums.len();
+        if n == 0 || k as usize > n {
+            return vec![];
+        }
+        let k = k as usize;
+        let mut result = Vec::with_capacity(n - k + 1);
+        let mut deque: VecDeque<usize> = VecDeque::new(); // 存储索引
+        for i in 0..n {
+            // 移除不在窗口内的元素索引
+            if let Some(&front) = deque.front() {
+                if front + k <= i {
+                    deque.pop_front();
+                }
+            }
+            // 移除所有小于当前元素的索引
+            while let Some(&back) = deque.back() {
+                if nums[back] < nums[i] {
+                    deque.pop_back();
+                } else {
+                    break;
+                }
+            }
+            deque.push_back(i);
+            // 当窗口达到大小k时，记录当前最大值
+            if i + 1 >= k {
+                if let Some(&front) = deque.front() {
+                    result.push(nums[front]);
+                }
+            }
+        }
+        result
+    }
+    // 4.3最小覆盖子串【困难】
+    /// 给你一个字符串 S、一个字符串 T 。返回 S 中涵盖 T 所有字符的最小子串。
+    /// 如果 S 中不存在涵盖 T 所有字符的子串，返回空字符串 "" 。
+    pub fn min_window(s: String, t: String) -> String {
+        use std::collections::HashMap;
+        let mut need = HashMap::new();
+        let mut window = HashMap::new();
+        for c in t.chars() {
+            *need.entry(c).or_insert(0) += 1;
+        }
+        let (mut left, mut right) = (0, 0);
+        let (mut valid, mut start, mut len) = (0, 0, usize::MAX);
+        let s_chars: Vec<char> = s.chars().collect();
+        while right < s_chars.len() {
+            let c = s_chars[right];
+            right += 1;
+            if need.contains_key(&c) {
+                *window.entry(c).or_insert(0) += 1;
+                if window[&c] == need[&c] {
+                    valid += 1;
+                }
+            }
+            while valid == need.len() {
+                if right - left < len {
+                    start = left;
+                    len = right - left;
+                }
+                let d = s_chars[left];
+                left += 1;
+                if need.contains_key(&d) {
+                    if window[&d] == need[&d] {
+                        valid -= 1;
+                    }
+                    *window.entry(d).or_insert(0) -= 1;
+                }
+            }
+        }
+        if len == usize::MAX {
+            "".to_string()
+        } else {
+            s_chars[start..start + len].iter().collect()
+        }
     }
 }
