@@ -12,13 +12,15 @@ impl Solution {
     ///
     ///你可以假设每种输入只会对应一个答案。但是，数组中同一个元素不能使用两遍。
     pub fn two_sum1(nums: Vec<i32>, target: i32) -> Vec<i32> {
-        use std::collections::HashMap;
-        let mut m1 = HashMap::<i32, usize>::new();
+        use std::collections::HashMap; // 引入 HashMap
+        let mut m1 = HashMap::<i32, usize>::new(); // 存储数值及其索引
+        // 遍历数组
         for (index, &num) in nums.iter().enumerate() {
+            // 检查是否存在补数
             if let Some(&v) = m1.get(&(target - num)) {
-                return vec![v as i32, index as i32];
+                return vec![v as i32, index as i32]; // 找到目标值，返回索引
             }
-            m1.insert(num, index);
+            m1.insert(num, index); // 存储当前数值及其索引
         }
         vec![]
     }
@@ -26,18 +28,18 @@ impl Solution {
     ///给你一个字符串数组，请你将 字母异位词 组合在一起。可以按任意顺序返回结果列表。
     pub fn group_anagrams(strs: Vec<String>) -> Vec<Vec<String>> {
         use std::collections::HashMap;
-        let mut map: HashMap<String, Vec<String>> = HashMap::new();
+        let mut map: HashMap<String, Vec<String>> = HashMap::new(); // 存储排序后的字符串及其对应的异位词列表
+        // 遍历输入字符串数组
         for s in strs.into_iter() {
-            let mut key_chars: Vec<char> = s.chars().collect();
-            key_chars.sort_unstable();
-            let key: String = key_chars.into_iter().collect();
-            map.entry(key).or_default().push(s);
+            let mut key_chars: Vec<char> = s.chars().collect(); // 将字符串转换为字符向量
+            key_chars.sort_unstable(); // 对字符进行排序
+            let key: String = key_chars.into_iter().collect(); // 将排序后的字符重新组合成字符串作为键
+            map.entry(key).or_default().push(s); // 将原字符串添加到对应的异位词列表中
         }
-        map.into_values().collect()
+        map.into_values().collect() // 返回所有异位词组的列表
     }
     //  1.3最长连续序列【中等】
     /// 给定一个未排序的整数数组 nums ，找出数字连续的最长序列（不要求序列元素在原数组中连续）的长度。
-    ///
     /// 设计并实现时间复杂度为 O(n) 的算法解决此问题。
     pub fn longest_consecutive(nums: Vec<i32>) -> i32 {
         use std::collections::HashSet;
@@ -250,7 +252,7 @@ impl Solution {
         }
         count
     }
-    /// 最快解法:
+    // 最快解法:
     fn subarray_sum2(nums: Vec<i32>, k: i32) -> i32 {
         use std::collections::HashMap;
         let mut s = vec![0; nums.len() + 1];
@@ -347,5 +349,40 @@ impl Solution {
         } else {
             s_chars[start..start + len].iter().collect()
         }
+    }
+
+    // 5.普通数组
+    // 5.1 最大子数组和【中等】
+    /// 给你一个整数数组 nums ，请你找出一个具有最大和的连续子数组（子数组最少包含一个元素），返回其最大和。
+    pub fn max_sub_array(nums: Vec<i32>) -> i32 {
+        let mut max_current = nums[0];
+        let mut max_global = nums[0];
+        for &num in nums.iter().skip(1) {
+            max_current = max_current.max(0) + num; // 如果 max_current 为负数，则从当前元素重新开始
+            if max_current > max_global {
+                max_global = max_current;
+            }
+        }
+        max_global
+    }
+    // 5.2合并区间【中等】
+    ///以数组 intervals 表示若干个区间的集合，其中单个区间为 intervals[i] = [starti, endi] 。
+    ///请你合并所有重叠的区间，并返回一个不重叠的区间数组，该数组需恰好覆盖输入中的所有区间。
+    pub fn merge(intervals: Vec<Vec<i32>>) -> Vec<Vec<i32>> {
+        let mut intervals = intervals;
+        intervals.sort_unstable_by_key(|interval| interval[0]);
+        let mut merge_arr: Vec<Vec<i32>> = Vec::new();
+        for interval in intervals {
+            if let Some(last) = merge_arr.last_mut() {
+                if interval[0] <= last[1] {
+                    last[1] = last[1].max(interval[1]);
+                } else {
+                    merge_arr.push(interval);
+                }
+            } else {
+                merge_arr.push(interval);
+            }
+        }
+        merge_arr
     }
 }

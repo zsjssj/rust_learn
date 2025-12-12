@@ -41,7 +41,15 @@ impl Solution {
     ///
     /// 将罗马数字转换为整数。输入为一个表示罗马数字的字符串 s ，输出其对应的整数值。
     pub fn roman_to_int(s: String) -> i32 {
-        let roman_map: HashMap<char, i32> = HashMap::from([('I', 1), ('V', 5), ('X', 10), ('L', 50), ('C', 100), ('D', 500), ('M', 1000)]);
+        let roman_map: HashMap<char, i32> = HashMap::from([
+            ('I', 1),
+            ('V', 5),
+            ('X', 10),
+            ('L', 50),
+            ('C', 100),
+            ('D', 500),
+            ('M', 1000),
+        ]);
         let chars: Vec<char> = s.chars().collect();
         let mut total: i32 = 0;
         let n: usize = chars.len();
@@ -304,7 +312,7 @@ impl Solution {
     ///88.合并两个有序数组【双指针从后向前】
     ///
     /// 给你两个有序整数数组 nums1 和 nums2，请你将 nums2 合并到 nums1 中，使 nums1 成为一个有序数组。
-    pub fn merge(nums1: &mut Vec<i32>, m: i32, nums2: &Vec<i32>, n: i32) {
+    pub fn merge_01(nums1: &mut Vec<i32>, m: i32, nums2: &Vec<i32>, n: i32) {
         let mut p1: isize = (m - 1) as isize;
         let mut p2: isize = (n - 1) as isize;
         let mut p: isize = (m + n - 1) as isize;
@@ -368,7 +376,9 @@ impl Solution {
                 (Some(node1), Some(node2)) => {
                     let n1 = node1.borrow();
                     let n2 = node2.borrow();
-                    n1.val == n2.val && is_mirror(n1.left.clone(), n2.right.clone()) && is_mirror(n1.right.clone(), n2.left.clone())
+                    n1.val == n2.val
+                        && is_mirror(n1.left.clone(), n2.right.clone())
+                        && is_mirror(n1.right.clone(), n2.left.clone())
                 }
                 (None, None) => true,
                 _ => false,
@@ -498,6 +508,10 @@ pub type Tree = Option<Rc<RefCell<TreeNode>>>;
 impl TreeNode {
     #[inline]
     pub fn new(val: i32) -> Self {
-        TreeNode { val, left: None, right: None }
+        TreeNode {
+            val,
+            left: None,
+            right: None,
+        }
     }
 }

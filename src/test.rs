@@ -2,89 +2,45 @@
 #![allow(unused_variables)]
 #![allow(unused_imports)]
 
-use axum::{
-    self, Router,
-    extract::{Json, Path, Query, State},
-    routing::{delete, get, post, put},
-};
-use tower_http::services::fs::ServeDir;
+use core::str;
 
-use serde::Deserialize;
-use std::sync::Arc;
-use tokio::net::TcpListener; //异步式的TcpListener
+use serde::{Deserialize, Serialize};
 
-#[tokio::main]
-pub async fn run() {
-    //用户路由
-    let user_router: Router = Router::new()
-        .route("/user/login", get(|| async { "Login Page" }))
-        .route("/user/logout", get(|| async { "Logout Page" }));
+pub fn run() {
+    let p1 = Person {
+        base: Base {
+            name: String::from("Alice"),
+            age: 30,
+        },
+        score: 95,
+    };
+    // 序列化为 JSON 字符串
+    let json_str = serde_json::to_string(&p1).unwrap();
+    println!("Serialized JSON: {}", json_str);
+    // 反序列化回结构体
+    let p2: Person = serde_json::from_str(&json_str).unwrap();
+    println!("Deserialized Person: {:?}", p2);
+    //创建一个json数据
+    let json_data = r#"
+    {
+        "name": "Bob",
+        "age": 25,
+        "score": 88,
+        "sex":1
+    }"#;
+    let p3: Person = serde_json::from_str(json_data).unwrap();
+    println!("Deserialized Person with extra field: {:?}", p3);
+}
 
-    //产品路由
-    #[derive(Deserialize)]
-    struct DetailParams {
-        name: String,
-    }
-    let product_routes: Router = Router::new()
-        .route("/list", get(|| async { "Product List" }))
-        .route(
-            "/detail/{id}",
-            get(|Path(id): Path<u32>| async move { format!("Product Detail for ID: {}", id) }),
-        )
-        .route(
-            "/detail/{id}",
-            delete(|Path(id): Path<u32>| async move { format!("delete Product Detail for ID: {}", id) }),
-        )
-        .route(
-            "/detail",
-            get(
-                |Query(params): Query<DetailParams>| async move { format!("Product Detail for Name: {}", params.name) },
-            ),
-        )
-        .route(
-            "/detail",
-            post(
-                |Json(data): Json<DetailParams>| async move { format!("add Product Detail Post for Name: {}", data.name) },
-            ),
-        )
-        .route(
-            "/detail",
-            put(|Json(data): Json<DetailParams>| async move {
-                format!("update Product Detail Post for Name: {}", data.name)
-            }),
-        );
+#[derive(Deserialize, Serialize, Debug)]
+struct Base {
+    pub name: String,
+    pub age: u8,
+}
 
-    #[derive(Deserialize)]
-    struct AppState {
-        state: bool,
-    }
-    let app_state: AppState = AppState { state: true };
-    let app_routes: Router = Router::new()
-        .route(
-            "/",
-            get(|State(state): State<Arc<AppState>>| async move { format!("app state: {}", state.state) }),
-        )
-        .route(
-            "/{status}",
-            put(
-                |Path(status): Path<bool>, State(state): State<Arc<AppState>>| async move {
-                    format!("app state: {} by {}", state.state, status)
-                },
-            ),
-        )
-        .with_state(Arc::new(app_state));
-
-    let v1_routes: Router = Router::new()
-        .merge(user_router) //平级合并路由
-        .nest("/products", product_routes)
-        .nest("/app", app_routes);
-
-    let app: Router = Router::new()
-        .nest("/api/v1", v1_routes)
-        .nest_service("/static", ServeDir::new("assets")) //静态资源路由,返指定文件夹下的传入名称的文件
-        .fallback_service(ServeDir::new("assets"))
-        .fallback(|| async { "404 Not Found" });
-
-    let listener: TcpListener = TcpListener::bind("127.0.0.1:3000").await.unwrap();
-    axum::serve(listener, app).await.unwrap();
+#[derive(Deserialize, Serialize, Debug)]
+struct Person {
+    #[serde(flatten)]
+    pub base: Base,
+    pub score: u8,
 }
