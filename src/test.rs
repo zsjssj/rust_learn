@@ -1,46 +1,40 @@
 #![allow(dead_code)]
 #![allow(unused_variables)]
 #![allow(unused_imports)]
-
-use core::str;
-
-use serde::{Deserialize, Serialize};
+use rand::Rng;
 
 pub fn run() {
-    let p1 = Person {
-        base: Base {
-            name: String::from("Alice"),
-            age: 30,
-        },
-        score: 95,
+    // let res = test1().unwrap_or("aaaaaaaaa".to_string());
+    // println!("run res is {}", res);
+    foo();
+}
+
+//you几率返回Err或者Ok
+pub fn maybe_err() -> Result<Option<i32>, String> {
+    let mut rng = rand::rng();
+    let n = rng.random_bool(0.5);
+    if n {
+        Err("An error occurred".to_string())
+    } else {
+        Ok(Some(1))
+    }
+}
+fn test1() -> Result<String, String> {
+    let res = maybe_err()
+        .map_err(|e| format!("获取云端重建地址失败: {}", e))?
+        .ok_or(" 为空")?;
+    println!("test1 res is {res}");
+    Ok("success".to_string())
+}
+
+//声明式宏
+macro_rules! create_function {
+    ($func_name:ident) => {
+        fn $func_name() {
+            println!("You called {:?}()", stringify!($func_name));
+        }
     };
-    // 序列化为 JSON 字符串
-    let json_str = serde_json::to_string(&p1).unwrap();
-    println!("Serialized JSON: {}", json_str);
-    // 反序列化回结构体
-    let p2: Person = serde_json::from_str(&json_str).unwrap();
-    println!("Deserialized Person: {:?}", p2);
-    //创建一个json数据
-    let json_data = r#"
-    {
-        "name": "Bob",
-        "age": 25,
-        "score": 88,
-        "sex":1
-    }"#;
-    let p3: Person = serde_json::from_str(json_data).unwrap();
-    println!("Deserialized Person with extra field: {:?}", p3);
 }
+create_function!(foo);
 
-#[derive(Deserialize, Serialize, Debug)]
-struct Base {
-    pub name: String,
-    pub age: u8,
-}
-
-#[derive(Deserialize, Serialize, Debug)]
-struct Person {
-    #[serde(flatten)]
-    pub base: Base,
-    pub score: u8,
-}
+//
