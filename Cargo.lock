@@ -1524,6 +1524,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "learn_macro_01"
+version = "0.1.0"
+dependencies = [
+ "rand 0.9.2",
+]
+
+[[package]]
+name = "learn_macro_02"
+version = "0.1.0"
+dependencies = [
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "lebe"
 version = "0.5.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2534,6 +2549,8 @@ dependencies = [
  "hello_macro",
  "hello_macro_derive",
  "image",
+ "learn_macro_01",
+ "learn_macro_02",
  "log",
  "once_cell",
  "qrcode",
