@@ -35,22 +35,30 @@ struct Point {
 }
 
 pub fn run() {
-    let res = test1().unwrap_or("aaaaaaaaa".to_string());
-    println!("run res is {}", res);
-    test2();
-    test22();
-    test31();
-    test32();
-    test33();
+    let res = test1().unwrap_or_else(|e| e);
+    println!("运行测试后：{}", res);
+    // test2();
+    // println!("-------------------");
+    // test22();
+    // println!("-------------------");
+    // test31();
+    // println!("-------------------");
+    // test32();
+    // println!("-------------------");
+    // test33();
+    // println!("-------------------");
 
     let p = Point { x: 10, value: 20 };
     println!("Point debug: {}", p.my_debug());
+
+    let mut s1 = String::from("foo");
+    let s2 = "bar";
+    s1.push_str(s2);
+    println!("s2 is {}", s2);
 }
 
 fn test1() -> Result<String, String> {
-    let res = foo()
-        .map_err(|e| format!("获取云端重建地址失败: {}", e))?
-        .ok_or(" 为空")?;
+    let res = foo().map_err(|e| format!("失败: {}", e))?.ok_or("为空".to_string())?;
     println!("test1 res is {res}");
     Ok("success".to_string())
 }
