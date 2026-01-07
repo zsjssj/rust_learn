@@ -13,7 +13,7 @@ fn test22() {}
 
 #[learn_macro_02::trace]
 fn test31() {
-    println!("in test31");
+    print!("in test31 \t");
 }
 #[learn_macro_02::log()]
 fn test32() {
@@ -24,11 +24,8 @@ fn test33() {
     println!("in test33");
 }
 
-trait MyDebug {
-    fn my_debug(&self) -> String;
-}
-
-#[derive(learn_macro_02::MyDebug)]
+use learn_macro_03::MyDebug;
+#[derive(learn_macro_03::MyDebug)]
 struct Point {
     x: i32,
     value: i32,
@@ -37,11 +34,8 @@ struct Point {
 pub fn run() {
     let res = test1().unwrap_or_else(|e| e);
     println!("运行测试后：{}", res);
-    // test2();
-    // println!("-------------------");
-    // test22();
-    // println!("-------------------");
-    // test31();
+    test31();
+    print_name(); // 调用宏生成的函数
     // println!("-------------------");
     // test32();
     // println!("-------------------");
@@ -50,15 +44,10 @@ pub fn run() {
 
     let p = Point { x: 10, value: 20 };
     println!("Point debug: {}", p.my_debug());
-
-    let mut s1 = String::from("foo");
-    let s2 = "bar";
-    s1.push_str(s2);
-    println!("s2 is {}", s2);
 }
 
 fn test1() -> Result<String, String> {
     let res = foo().map_err(|e| format!("失败: {}", e))?.ok_or("为空".to_string())?;
-    println!("test1 res is {res}");
-    Ok("success".to_string())
+    print!("test1 res is {res} \t ");
+    Ok("成功".to_string())
 }

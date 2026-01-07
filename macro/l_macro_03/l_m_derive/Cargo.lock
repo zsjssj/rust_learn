@@ -3,7 +3,7 @@
 version = 4
 
 [[package]]
-name = "learn_macro_02"
+name = "l_m_derive"
 version = "0.1.0"
 dependencies = [
  "quote",

@@ -1,0 +1,10 @@
+[package]
+name = "l_m"
+version = "0.1.0"
+edition = "2024"
+
+[features]
+derive = ["my_debug_derive"]
+
+[dependencies]
+my_debug_derive = { path = "../l_m_derive/", optional = true, package = "l_m_derive" }

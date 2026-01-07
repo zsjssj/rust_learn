@@ -15,9 +15,9 @@ macro_rules! create_function {
             let mut rng = rand::rng();
             let n = rng.random_bool(0.5);
             if n {
-                Err("错误示例".to_string())
+                Ok(Some(42))
             } else {
-                Ok(None)
+                Err("错误示例".to_string())
             }
         }
     };

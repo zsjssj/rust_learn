@@ -1,5 +1,5 @@
 [package]
-name = "learn_macro_02"
+name = "l_m_derive"
 version = "0.1.0"
 edition = "2024"
 
@@ -8,4 +8,6 @@ proc-macro = true
 
 [dependencies]
 quote = "1.0.42"
-syn = { version = "2.0.113", features = ["full"] }
+syn = {version = "2.0.113",features = ["full"] }
+
+# my_debug = { path = "../l_m/" }
