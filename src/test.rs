@@ -1,53 +1,39 @@
 #![allow(dead_code)]
 #![allow(unused_variables)]
 #![allow(unused_imports)]
-use learn_macro_01::create_function;
-use rand::Rng;
 
-create_function!(foo);
-
-#[learn_macro_02::hello]
-fn test2() {}
-#[learn_macro_02::my_attr(a, b = 1)]
-fn test22() {}
-
-#[learn_macro_02::trace]
-fn test31() {
-    print!("in test31 \t");
-}
-#[learn_macro_02::log()]
-fn test32() {
-    println!("in test32");
-}
-#[learn_macro_02::log2(level = 2)]
-fn test33() {
-    println!("in test33");
-}
-
-use learn_macro_03::MyDebug;
-#[derive(learn_macro_03::MyDebug)]
-struct Point {
-    x: i32,
-    value: i32,
-}
+use super::l_more::calculate_parabola_from_points;
+use anyhow::Result;
+use std::ops::Add;
+use std::sync::LazyLock;
+use std::time::Instant;
+static HTTP_CLIENT: LazyLock<reqwest::Client> = LazyLock::new(|| reqwest::Client::new());
 
 pub fn run() {
-    let res = test1().unwrap_or_else(|e| e);
-    println!("运行测试后：{}", res);
-    test31();
-    print_name(); // 调用宏生成的函数
-    // println!("-------------------");
-    // test32();
-    // println!("-------------------");
-    // test33();
-    // println!("-------------------");
-
-    let p = Point { x: 10, value: 20 };
-    println!("Point debug: {}", p.my_debug());
+    //记录运行时间
+    test3();
 }
 
-fn test1() -> Result<String, String> {
-    let res = foo().map_err(|e| format!("失败: {}", e))?.ok_or("为空".to_string())?;
-    print!("test1 res is {res} \t ");
-    Ok("成功".to_string())
+fn test1() {
+    //记录运行时间
+    let start = Instant::now();
+    let p = calculate_parabola_from_points([(1.0, 2.0), (2.0, 3.0), (3.0, 5.0)]);
+    let duration = start.elapsed();
+    println!("Time elapsed in run() is: {:?}", duration);
+    println!("test run completed {:?}", p);
+}
+
+fn test3() {
+    let s1: String = String::from("hello");
+    let joinhandler = std::thread::Builder::new()
+        .name("worker".into())
+        .spawn(|| {
+            let s2 = s1 + " world";
+            std::thread::sleep(std::time::Duration::from_secs(2));
+            println!("test3 completed {:?}", s2);
+        })
+        .unwrap();
+    let info = joinhandler.thread();
+    println!("thread info: {:?}", info);
+    joinhandler.join().unwrap();
 }

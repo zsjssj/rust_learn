@@ -1,8 +1,8 @@
-use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
 use serde_json;
+use std::sync::LazyLock;
 
-static CLIENT: Lazy<reqwest::Client> = Lazy::new(|| reqwest::Client::new());
+static CLIENT: LazyLock<reqwest::Client> = LazyLock::new(|| reqwest::Client::new());
 
 pub fn api_test() {
     let rt = tokio::runtime::Runtime::new().unwrap();

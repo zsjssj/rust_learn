@@ -25,7 +25,7 @@ pub fn my_debug_derive(input: TokenStream) -> TokenStream {
             fn my_debug(&self) -> String {
                 let mut parts = Vec::new();
                 #(#field_debug)*
-                format!("ssje- {} {{ {} }}", stringify!(#name), parts.join(", "))
+                format!("ssje: {} {{ {} }}", stringify!(#name), parts.join(", "))
             }
         }
     };

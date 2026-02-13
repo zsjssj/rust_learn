@@ -7,6 +7,7 @@ pub mod l_21_22;
 pub mod l_more;
 
 pub mod test;
+pub mod test_macro;
 
 pub fn try_some() {
     println!("lib run start: ^_^");
@@ -16,5 +17,6 @@ pub fn try_some() {
     // learn_more::learn_algorithm::run();
     // learn_more::learn_other_crate::learn_sqlx::run();
 
+    // test_macro::run();
     test::run();
 }
