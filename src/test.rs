@@ -4,14 +4,25 @@
 
 use super::l_more::calculate_parabola_from_points;
 use anyhow::Result;
+use core::time;
 use std::ops::Add;
 use std::sync::LazyLock;
+use std::thread::JoinHandle;
 use std::time::Instant;
 static HTTP_CLIENT: LazyLock<reqwest::Client> = LazyLock::new(|| reqwest::Client::new());
 
 pub fn run() {
     //记录运行时间
-    test3();
+    // test3();
+    // test4();
+    let v: Vec<u32> = vec![0; 100000]
+        .iter()
+        .map(|_| rand::random::<u32>())
+        .collect::<Vec<_>>();
+    let mut v1 = v.clone();
+    let mut v2 = v.clone();
+    loga(&mut v1);
+    logb(&mut v2);
 }
 
 fn test1() {
@@ -23,17 +34,16 @@ fn test1() {
     println!("test run completed {:?}", p);
 }
 
-fn test3() {
-    let s1: String = String::from("hello");
-    let joinhandler = std::thread::Builder::new()
-        .name("worker".into())
-        .spawn(|| {
-            let s2 = s1 + " world";
-            std::thread::sleep(std::time::Duration::from_secs(2));
-            println!("test3 completed {:?}", s2);
-        })
-        .unwrap();
-    let info = joinhandler.thread();
-    println!("thread info: {:?}", info);
-    joinhandler.join().unwrap();
+fn loga(vec: &mut Vec<u32>) {
+    use rayon::prelude::*;
+    let timer = Instant::now();
+    vec.par_sort();
+    let duration = timer.elapsed();
+    println!("Time elapsed in loga() is: {:?}", duration);
+}
+fn logb(vec: &mut Vec<u32>) {
+    let timer = Instant::now();
+    vec.sort();
+    let duration = timer.elapsed();
+    println!("Time elapsed in logb() is: {:?}", duration);
 }

@@ -24,6 +24,7 @@ tower-http = {version = "0.6.7",features = ["fs"] }
 learn_macro_01 = { path = "./macro/l_macro_01/" }
 learn_macro_02 = { path = "./macro/l_macro_02/" }
 learn_macro_03 = { path = "./macro/l_macro_03/l_m/" , features = ["derive"],package = "l_m" }
+rayon = "1.11.0"
 
 [profile.dev]
 opt-level = 0  # 优化等级，0-3，s，z
