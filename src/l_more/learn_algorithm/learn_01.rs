@@ -9,6 +9,7 @@ use super::Solution;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
+use std::vec;
 
 impl Solution {
     ///1.两数之和【空间换时间，哈希表】

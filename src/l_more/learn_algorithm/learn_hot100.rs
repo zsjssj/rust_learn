@@ -385,5 +385,145 @@ impl Solution {
         }
         merge_arr
     }
+    //5.3轮转数组【中等】
+    /// 给定一个数组，将数组中的元素向右轮转 k 个位置，其中 k 是非负数。
+    pub fn rotate(nums: &mut Vec<i32>, k: i32) {
+        let n = nums.len();
+        let k = (k as usize) % n;
+        nums.reverse();
+        nums[..k].reverse();
+        nums[k..].reverse();
+    }
+    //5.4除了自己以外数组的乘积【中等】
+    /// 给你一个长度为 n 的整数数组 nums，其中 n > 1，返回一个输出数组 output，其中 output[i] 等于 nums 中除了 nums[i] 以外其余各元素的乘积。
+    /// 题目数据保证数组 nums 中任意元素的乘积都在 32 位整数范围内。
+    /// 请不要使用除法，且在 O(n) 时间复杂度内完成此题。
+    pub fn product_except_self(nums: Vec<i32>) -> Vec<i32> {
+        let n = nums.len();
+        let mut output = vec![1; n];
+        let mut left_product = 1;
+        for i in 0..n {
+            output[i] = left_product;
+            left_product *= nums[i];
+        }
+        let mut right_product = 1;
+        for i in (0..n).rev() {
+            output[i] *= right_product;
+            right_product *= nums[i];
+        }
+        output
+    }
+    pub fn product_except_self2(nums: Vec<i32>) -> Vec<i32> {
+        let n = nums.len();
+        let mut pre = vec![1; n];
+        for i in 1..n {
+            pre[i] = pre[i - 1] * nums[i - 1];
+        }
+        let mut suf = vec![1; n];
+        for i in (0..n - 1).rev() {
+            suf[i] = suf[i + 1] * nums[i + 1];
+        }
+        pre.iter().zip(suf.iter()).map(|(&p, &s)| p * s).collect()
+    }
+    //5.4缺失的第一个正数【困难】
+    /// 给你一个未排序的整数数组 nums ，请你找出其中没有出现的最小的正整数。
+    /// 请你实现时间复杂度为 O(n) 并且只使用常数级空间的解决方案。
+    pub fn first_missing_positive(nums: &mut Vec<i32>) -> i32 {
+        let n = nums.len();
+        for i in 0..n {
+            while nums[i] > 0 && (nums[i] as usize) <= n && nums[nums[i] as usize - 1] != nums[i] {
+                let target_index = nums[i] as usize - 1;
+                nums.swap(i, target_index);
+            }
+        }
+        for i in 0..n {
+            if nums[i] != (i as i32 + 1) {
+                return i as i32 + 1;
+            }
+        }
+        (n as i32) + 1
+    }
+
+    //6.矩阵
+    //6.1矩阵置零【中等】
+    /// 给定一个 m x n 的矩阵，如果一个元素为 0 ，则将其所在行和列的所有元素都设为 0 。请使用 原地 算法。
+    pub fn set_zeroes(matrix: &mut Vec<Vec<i32>>) {
+        let m = matrix.len();
+        let n = matrix[0].len();
+        let mut first_row_zero = false;
+        let mut first_col_zero = false;
+        for i in 0..m {
+            if matrix[i][0] == 0 {
+                first_col_zero = true;
+                break;
+            }
+        }
+        for j in 0..n {
+            if matrix[0][j] == 0 {
+                first_row_zero = true;
+                break;
+            }
+        }
+        for i in 1..m {
+            for j in 1..n {
+                if matrix[i][j] == 0 {
+                    matrix[i][0] = 0;
+                    matrix[0][j] = 0;
+                }
+            }
+        }
+        for i in 1..m {
+            for j in 1..n {
+                if matrix[i][0] == 0 || matrix[0][j] == 0 {
+                    matrix[i][j] = 0;
+                }
+            }
+        }
+        if first_row_zero {
+            for j in 0..n {
+                matrix[0][j] = 0;
+            }
+        }
+        if first_col_zero {
+            for i in 0..m {
+                matrix[i][0] = 0;
+            }
+        }
+    }
+
+    //6.2螺旋矩阵【中等】
+    /// 给你一个 m 行 n 列的矩阵 matrix ，请按照 顺时针螺旋顺序 ，返回矩阵中的所有元素。
+    pub fn spiral_order(matrix: Vec<Vec<i32>>) -> Vec<i32> {
+        let mut result = Vec::new();
+        if matrix.is_empty() {
+            return result;
+        }
+        let (mut top, mut bottom) = (0, matrix.len() - 1);
+        let (mut left, mut right) = (0, matrix[0].len() - 1);
+        while top <= bottom && left <= right {
+            for j in left..=right {
+                result.push(matrix[top][j]);
+            }
+            top += 1;
+            for i in top..=bottom {
+                result.push(matrix[i][right]);
+            }
+            if top <= bottom {
+                right = right.saturating_sub(1);
+                for j in (left..=right).rev() {
+                    result.push(matrix[bottom][j]);
+                }
+                bottom = bottom.saturating_sub(1);
+            }
+            if left <= right {
+                for i in (top..=bottom).rev() {
+                    result.push(matrix[i][left]);
+                }
+                left += 1;
+            }
+        }
+        result
+    }
+
     fn other() {}
 }

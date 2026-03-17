@@ -10,13 +10,13 @@ pub mod test;
 pub mod test_macro;
 
 pub fn try_some() {
-    println!("lib run start: ^_^");
+    // println!("lib run start: ^_^");
 
     // learn_16_20::learn_20_advanced::learn_20_05::run();
     // learn_more::learn_other_crate::learn_axum::run();
-    // learn_more::learn_algorithm::run();
+    l_more::learn_algorithm::run();
     // learn_more::learn_other_crate::learn_sqlx::run();
 
     // test_macro::run();
-    test::run();
+    // test::run();
 }
