@@ -19,7 +19,7 @@ anyhow = "1.0.100"
 log = "0.4.28"
 env_logger = "0.11.8"
 rust-ini = "0.21.3"
-sqlx = {version = "0.8.6",features = ["postgres", "runtime-tokio", "macros"] }
+sqlx = {version = "0.8.6",features = ["postgres", "sqlite","runtime-tokio", "macros"] }
 tower-http = {version = "0.6.7",features = ["fs"] }
 learn_macro_01 = { path = "./macro/l_macro_01/" }
 learn_macro_02 = { path = "./macro/l_macro_02/" }

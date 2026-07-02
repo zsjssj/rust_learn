@@ -11,7 +11,7 @@ pub mod learn_interview150; //面150
 pub struct Solution;
 
 pub fn run() {
-    let mut nums = vec![vec![1, 2, 3, 3, 3], vec![4, 0, 6, 5, 7], vec![7, 8, 9, 11, 23]];
-    Solution::set_zeroes(&mut nums);
-    println!("result: {:?}", nums);
+    let num1 = vec![1, 3, 4];
+    let num2 = vec![2, 5, 6, 7];
+    // let result = Solution::merge_two_lists(num1, num2);
 }
