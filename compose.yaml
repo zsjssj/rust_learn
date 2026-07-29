@@ -1,0 +1,54 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    image: rust-learn:latest
+
+    # env_file:
+    # #放置在服务器端的配置文件，要么使用env_file配置，要么使用environment配置变量文件
+    #   - production.env  
+
+    environment:
+      APP_ENV: production
+      DATABASE_URL: postgres://postgres:521421@db:5432/postgres
+      APP_NAME: rust_learn
+      APP_VERSION: 1.0.0
+      DEBUG_MODE: "false"
+      MAX_CONNECTIONS: "100"
+      LOG_LEVEL: info
+
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+
+  db:
+    image: postgres:17
+
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: "521421"
+      POSTGRES_DB: postgres
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  redis:
+    image: redis:8
+    healthcheck: ...
+    
+volumes:
+  postgres_data:
