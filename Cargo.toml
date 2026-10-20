@@ -30,6 +30,7 @@ tracing = "0.1.44"
 argon2 = "0.6.0"
 bb8 = "0.9.1"
 redis = { version = "=1.7.1", features = ["tokio-comp", "bb8"]}
+uuid = { version = "1.28.0", features = ["v4"] }
 
 [profile.dev]
 opt-level = 0  # 优化等级，0-3，s，z

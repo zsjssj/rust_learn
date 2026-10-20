@@ -2,7 +2,7 @@ use std::collections::HashSet;
 
 // 需要的相关库：redis、bb8【异步连接池】
 use bb8::Pool;
-use redis::{AsyncCommands, Client};
+use redis::{AsyncCommands, Client, Script};
 type RedisPool = Pool<Client>;
 
 #[tokio::main]
@@ -14,21 +14,21 @@ async fn fun() -> Result<(), Box<dyn std::error::Error>> {
 
     /* String数据 */
     // 1. 写入数据
-    let _: () = conn.set("user:1", "Alice").await?;
-    let _: () = conn.set_ex("user:2", "Alice", 20).await?; //写入数据，并设置过期时间
-    let success: bool = conn.expire("user:1", 20).await?; //对已有的数据，设置过期时间
+    let _: () = conn.set("s:user:1", "Alice").await?;
+    let _: () = conn.set_ex("s:user:2", "Alice", 20).await?; //写入数据，并设置过期时间
+    let success: bool = conn.expire("s:user:1", 20).await?; //对已有的数据，设置过期时间
     match success {
         true => println!("过期时间设置成功"),
         false => println!("键不存在，设置失败"),
     }
     // 2. 读取数据
-    let value: String = conn.get("user:1").await?;
+    let value: String = conn.get("s:user:1").await?;
     println!("Redis value: {value}");
     // 3. 自增/自减 n，并返回结果
-    let count: i64 = conn.incr("count", 5).await?;
-    let count: i64 = conn.decr("count", 2).await?;
+    let count: i64 = conn.incr("s:count", 5).await?;
+    let count: i64 = conn.decr("s:count", 2).await?;
     // 4. 删除数据
-    let _: () = conn.del("count").await?;
+    let _: () = conn.del("s:count").await?;
 
     /* List数据 */
     // 1.从左向右推数据、从左边抛出数据
@@ -100,9 +100,98 @@ async fn fun() -> Result<(), Box<dyn std::error::Error>> {
     let result: Vec<String> = conn.zrevrangebyscore("class", 80, 90).await?;
     // 获取所有成员及对应分数  [("ww", 78), ("ssje", 80), ("zyp", 83), ("zsj", 96)]
     let result: Vec<(String, f64)> = conn.zrange_withscores("class", 0, -1).await?;
-    // 获取指定成员的分数  Some(96.0)
+    // 获取指定成员的分数  Some(90.0)
     let score: Option<f64> = conn.zscore("class", "zsj").await?;
+
+    /* redis事务 */
+    // .atomic() 会让管道以 MULTI / EXEC 事务方式执行。
+    let result: (String, String) = redis::pipe()
+        .atomic()
+        .set("price", 100)
+        .ignore()
+        .set("status", "active")
+        .ignore()
+        .get("price")
+        .get("status")
+        .query_async(&mut *conn)
+        .await?;
+    println!("price = {},status = {}", result.0, result.1);
+
+    /* redis 锁 */
+    let key = "lock:order:1001";
+    // 尝试获取锁，过期时间 10 秒
+    // 1.基础分布式互斥锁
+    let lock = RedisLock::new(pool.clone());
+    match lock.try_acquire(key, 10_000).await? {
+        Some(token) => {
+            println!("获取锁成功");
+            // 在这里执行业务逻辑
+            // 例如处理订单
+            let released = lock.release(key, &token).await?;
+            println!("释放锁结果：{}", released);
+        }
+        None => {
+            println!("获取锁失败，其他任务正在处理");
+        }
+    }
+
+    // 2.可重入锁
 
     // conn 离开作用域时，连接归还连接池
     Ok(())
 }
+
+// 基础分布式互斥锁，适用：多个 Axum 实例不能同时处理同一个订单
+struct RedisLock {
+    pool: RedisPool,
+}
+impl RedisLock {
+    fn new(pool: RedisPool) -> Self {
+        Self { pool }
+    }
+    ///尝试获取锁
+    async fn try_acquire(&self, key: &str, ttl_ms: u64) -> Result<Option<String>, Box<dyn std::error::Error>> {
+        let token = uuid::Uuid::new_v4().to_string();
+        let mut conn = self.pool.get().await?;
+        let result: Option<String> = redis::cmd("SET")
+            .arg(key)
+            .arg(&token)
+            .arg("NX")
+            .arg("PX")
+            .arg(ttl_ms)
+            .query_async(&mut *conn)
+            .await?;
+        // if result.is_some() { Ok(Some(token)) } else { Ok(None) }
+        Ok(result.map(|_| token))
+    }
+    ///仅允许锁的持有者释放锁
+    async fn release(&self, key: &str, token: &str) -> Result<bool, Box<dyn std::error::Error>> {
+        let mut conn = self.pool.get().await?;
+        let script = Script::new(
+            // 获取获取锁的值并比较
+            // KEYS[1]：传入的第一个 Redis 键，也就是锁的 key，例如 lock:order:1001。
+            // ARGV[1]：传入的第一个参数，也就是获取锁时生成的唯一 token。
+            // GET：读取 Redis 中这个 key 对应的值。
+            // 第二行：如果 token 匹配，就删除锁 redis.call("DEL", KEYS[1])成功返回1，若key不存在，DEL返回0。
+            // 第四行：如果 token 不匹配，不执行删除。
+            r#"
+        if redis.call("GET", KEYS[1]) == ARGV[1] then
+            return redis.call("DEL", KEYS[1])
+        else
+            return 0
+        end
+        "#,
+        );
+        let result: i32 = script.key(key).arg(token).invoke_async(&mut *conn).await?;
+        Ok(result == 1)
+    }
+}
+
+// 可重入锁，适用：同一业务调用链需要重复获取同一把锁
+struct LockReentrant {}
+
+//公平锁 / 排队锁，适用：多个请求必须按顺序获得锁
+
+//读写锁（Read-Write Lock），适用：多个读者共享访问、写者独占
+
+//Redlock 多节点分布式锁，适用：需要多 Redis 节点协调获取锁
