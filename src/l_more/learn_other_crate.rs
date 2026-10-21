@@ -7,3 +7,4 @@ pub mod learn_redis;
 pub mod learn_reqwest;
 pub mod learn_serde;
 pub mod learn_sqlx;
+pub mod learn_thiserror;
