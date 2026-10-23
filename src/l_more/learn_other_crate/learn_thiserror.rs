@@ -19,7 +19,11 @@ pub enum ConfigError {
 
 #[derive(Debug, Deserialize)]
 struct Config {
-    msg: String,
+    formatting: FormattingConfig,
+}
+#[derive(Debug, Deserialize)]
+struct FormattingConfig {
+    reorder_keys: bool,
 }
 fn load_config(path: impl AsRef<std::path::Path>) -> Result<Config, ConfigError> {
     let content = std::fs::read_to_string(path)?; // io::Error 自动转为 ConfigError::Io
@@ -28,11 +32,13 @@ fn load_config(path: impl AsRef<std::path::Path>) -> Result<Config, ConfigError>
 }
 
 pub fn run() {
-    let path = std::env::current_dir().unwrap().join("Cargo.toml");
+    let path = std::env::current_dir().unwrap().join(".taplo.toml");
     match load_config(path) {
         Err(n) => {
             println!("n 的值：{}", n)
         }
-        _ => {}
+        Ok(c) => {
+            println!("解析后的内容：{:?}", c)
+        }
     };
 }

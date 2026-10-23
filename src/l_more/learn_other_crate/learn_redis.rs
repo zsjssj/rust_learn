@@ -6,7 +6,7 @@ use redis::{AsyncCommands, Client, Script};
 type RedisPool = Pool<Client>;
 
 #[tokio::main]
-async fn fun() -> Result<(), Box<dyn std::error::Error>> {
+pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
     // 通过连接池连接redis
     let client = Client::open("redis://127.0.0.1:6379/")?; // 1. 创建 Redis 客户端
     let pool = RedisPool::builder().max_size(20).build(client).await?; // 2. 通过 bb8 创建连接池
@@ -134,7 +134,22 @@ async fn fun() -> Result<(), Box<dyn std::error::Error>> {
             println!("获取锁失败，其他任务正在处理");
         }
     }
-
+    // 1.1,测试多任务竞争同一把锁
+    use tokio::join;
+    let key = "test:lock:concurrency";
+    let (a, b) = join!(lock.try_acquire(key, 10_000), lock.try_acquire(key, 10_000),);
+    let a = a?;
+    let b = b?;
+    assert_ne!(a.is_some(), b.is_some());
+    // 释放成功获得的锁
+    if let Some(token) = a {
+        println!("a 释放锁");
+        lock.release(key, &token).await?;
+    }
+    if let Some(token) = b {
+        println!("b 释放锁");
+        lock.release(key, &token).await?;
+    }
     // 2.可重入锁
 
     // conn 离开作用域时，连接归还连接池
