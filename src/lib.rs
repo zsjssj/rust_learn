@@ -12,9 +12,9 @@ pub mod test_macro;
 pub fn try_some() {
     println!("lib run start: ^_^");
     // l_16_20::learn_20_advanced::learn_20_05::run();
-    // l_more::learn_other_crate::learn_axum::run();
     // l_more::learn_algorithm::run();
-    l_more::learn_other_crate::learn_redis::run().unwrap();
+    // l_more::learn_other_crate::learn_redis::run().unwrap();
+    l_more::learn_other_crate::learn_chrono::run();
     // l_more::test_other::t_mpsc::run();
     // test_macro::run();
     // test::run();

@@ -1,5 +1,6 @@
 pub mod learn_argon2;
 pub mod learn_axum;
+pub mod learn_chrono;
 pub mod learn_dotenvy;
 pub mod learn_qrcode;
 pub mod learn_rand;

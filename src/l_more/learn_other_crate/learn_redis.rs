@@ -152,6 +152,9 @@ async fn test7(pool: &RedisPool) -> Result<(), Box<dyn std::error::Error>> {
     // 1. 定义 Lua 脚本（示例：原子性库存扣减）
     let lua_script = r#"
         local stock = redis.call('GET', KEYS[1])
+        if redis.call('TTL', KEYS[1]) == -1 then
+            redis.call('EXPIRE', KEYS[1], ARGV[1])
+        end
         if stock and tonumber(stock) > 0 then
             return redis.call('DECR', KEYS[1])
         else
@@ -164,6 +167,7 @@ async fn test7(pool: &RedisPool) -> Result<(), Box<dyn std::error::Error>> {
     let script = Script::new(lua_script);
     let result: i64 = script
         .key("stock:item:1001") // 绑定 KEYS[1]
+        .arg(30)
         .invoke_async(&mut *conn) // 异步执行
         .await?;
     println!("脚本执行结果: {}", result);
