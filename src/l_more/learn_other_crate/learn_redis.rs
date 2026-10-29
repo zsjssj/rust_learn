@@ -10,9 +10,16 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
     // 通过连接池连接redis
     let client = Client::open("redis://127.0.0.1:6379/")?; // 1. 创建 Redis 客户端
     let pool = RedisPool::builder().max_size(20).build(client).await?; // 2. 通过 bb8 创建连接池
+    // let mut conn = pool.get().await?; // 3. 从连接池获取连接
+    test7(&pool).await?;
+    // conn 离开作用域时，连接归还连接池
+    Ok(())
+}
+
+/// String数据
+async fn test1(pool: &RedisPool) -> Result<(), Box<dyn std::error::Error>> {
     let mut conn = pool.get().await?; // 3. 从连接池获取连接
 
-    /* String数据 */
     // 1. 写入数据
     let _: () = conn.set("s:user:1", "Alice").await?;
     let _: () = conn.set_ex("s:user:2", "Alice", 20).await?; //写入数据，并设置过期时间
@@ -29,8 +36,12 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
     let count: i64 = conn.decr("s:count", 2).await?;
     // 4. 删除数据
     let _: () = conn.del("s:count").await?;
+    Ok(())
+}
 
-    /* List数据 */
+/// List数据
+async fn test2(pool: &RedisPool) -> Result<(), Box<dyn std::error::Error>> {
+    let mut conn = pool.get().await?; // 3. 从连接池获取连接
     // 1.从左向右推数据、从左边抛出数据
     let _: () = conn.lpush("list:age", 18).await?;
     let a: i64 = conn.lpop("list:age", None).await?; //一次弹出一个元素
@@ -48,7 +59,12 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
     //  4.查看列表元素
     let list_name: Vec<String> = conn.lrange("list:name", 0, -1).await?;
 
-    /* Hash数据 */
+    Ok(())
+}
+
+/// Hash数据
+async fn test3(pool: &RedisPool) -> Result<(), Box<dyn std::error::Error>> {
+    let mut conn = pool.get().await?;
     // 1.写入
     let _: () = conn.hset("hash:person", "ssje", 20).await?; //hash对象名称,hash:key[filed],hash:value
     // let _: () = conn.hset_ex("hash:person", [("zsj", 20)]).await?;
@@ -62,8 +78,12 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
     let _: () = conn.hdel("hash:person", "ssje").await?;
     // 5.获取has数据中filed数量
     let count: usize = conn.hlen("hash:person").await?;
+    Ok(())
+}
 
-    /* Set数据 【无序】*/
+/// Set数据 【无序】
+async fn test4(pool: &RedisPool) -> Result<(), Box<dyn std::error::Error>> {
+    let mut conn = pool.get().await?;
     // 1. 写入
     let _: () = conn.sadd("set:user_ids", "1001").await?; //添加一个成员
     let _: () = conn.sadd("set:user_ids", ("1001", "1002", "1003")).await?; //添加多个成员
@@ -82,8 +102,12 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
     let slen: usize = conn.scard("set:user_ids").await?;
     // 8. 删除set中元素
     let _: () = conn.srem("set:user_ids", "1001").await?;
+    Ok(())
+}
 
-    /* zSet数据 【有序】*/
+/// zSet数据 【有序】
+async fn test5(pool: &RedisPool) -> Result<(), Box<dyn std::error::Error>> {
+    let mut conn = pool.get().await?;
     // 1. 添加
     let _: () = conn.zadd("zset:class", "ssje", 80).await?;
     let _: () = conn
@@ -102,8 +126,12 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
     let result: Vec<(String, f64)> = conn.zrange_withscores("class", 0, -1).await?;
     // 获取指定成员的分数  Some(90.0)
     let score: Option<f64> = conn.zscore("class", "zsj").await?;
+    Ok(())
+}
 
-    /* redis事务 */
+/// redis事物
+async fn test6(pool: &RedisPool) -> Result<(), Box<dyn std::error::Error>> {
+    let mut conn = pool.get().await?;
     // .atomic() 会让管道以 MULTI / EXEC 事务方式执行。
     let result: (String, String) = redis::pipe()
         .atomic()
@@ -116,7 +144,34 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
         .query_async(&mut *conn)
         .await?;
     println!("price = {},status = {}", result.0, result.1);
+    Ok(())
+}
 
+/// redis Lua脚本
+async fn test7(pool: &RedisPool) -> Result<(), Box<dyn std::error::Error>> {
+    // 1. 定义 Lua 脚本（示例：原子性库存扣减）
+    let lua_script = r#"
+        local stock = redis.call('GET', KEYS[1])
+        if stock and tonumber(stock) > 0 then
+            return redis.call('DECR', KEYS[1])
+        else
+            return -1
+        end
+    "#;
+    // 2. 从池中获取连接
+    let mut conn = pool.get().await?;
+    // 3. 构建并执行脚本
+    let script = Script::new(lua_script);
+    let result: i64 = script
+        .key("stock:item:1001") // 绑定 KEYS[1]
+        .invoke_async(&mut *conn) // 异步执行
+        .await?;
+    println!("脚本执行结果: {}", result);
+    Ok(())
+}
+
+/// redis锁: 基础分布式互斥锁
+async fn test8_1(pool: &RedisPool) -> Result<(), Box<dyn std::error::Error>> {
     /* redis 锁 */
     let key = "lock:order:1001";
     // 尝试获取锁，过期时间 10 秒
@@ -150,9 +205,6 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
         println!("b 释放锁");
         lock.release(key, &token).await?;
     }
-    // 2.可重入锁
-
-    // conn 离开作用域时，连接归还连接池
     Ok(())
 }
 

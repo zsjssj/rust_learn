@@ -14,7 +14,7 @@ pub fn try_some() {
     // l_16_20::learn_20_advanced::learn_20_05::run();
     // l_more::learn_other_crate::learn_axum::run();
     // l_more::learn_algorithm::run();
-    l_more::learn_other_crate::learn_tracing::main();
+    l_more::learn_other_crate::learn_redis::run().unwrap();
     // l_more::test_other::t_mpsc::run();
     // test_macro::run();
     // test::run();

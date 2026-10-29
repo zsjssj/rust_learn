@@ -8,7 +8,7 @@ use std::{env, marker::PhantomPinned, num, pin::Pin};
 
 #[tokio::main]
 pub async fn run() {
-    test_1();
+    test_1().ok();
 }
 //测试dotenvy的用法
 fn test_1() -> std::result::Result<(), String> {
